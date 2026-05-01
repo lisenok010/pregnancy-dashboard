@@ -16,7 +16,7 @@ const App = () => {
     conceptionType: 'ЭКО',
     transferDate: '16 декабря 2025',
     embryoDay: 5,
-    bloodType: 'A(II) Rh+',
+    bloodType: 'I (0) Rh+',
     age: 37,
   };
 
@@ -174,7 +174,7 @@ const App = () => {
       { week: 16, sys: 112, dia: 70, weight: 62.2, edema: 0, pulse: 80 },
       { week: 18, sys: 115, dia: 72, weight: 63.0, edema: 1, pulse: 82, note: 'II скрининг · 04.04.2026' },
       { week: 20, sys: 118, dia: 74, weight: 63.8, edema: 1, pulse: 82 },
-      { week: 22, sys: 118, dia: 75, weight: 64.5, edema: 1, pulse: 84, note: 'Текущая неделя' },
+      { week: 22, sys: 118, dia: 75, weight: 64.0, edema: 1, pulse: 84, note: 'Текущая неделя' },
     ],
     targets: {
       sys: [90, 130],
@@ -201,8 +201,6 @@ const App = () => {
         { label: 'PAPP-A', value: '2113.1 мМЕ/л (MoM 1.16)', normal: 'MoM 0.5–2.0', ok: true },
         { label: 'PlGF', value: '21.81 пг/мл (MoM 0.76)', normal: 'MoM 0.5–2.0', ok: true },
         { label: 'Маточные арт. (ПИ)', value: 'Лев. 1.43 / Прав. 1.49', normal: 'Норма для срока', ok: true },
-        { label: 'АД (правая рука)', value: '108/73, 101/70', normal: '90–130 / 60–85', ok: true },
-        { label: 'АД (левая рука)', value: '103/71, 103/67', normal: '90–130 / 60–85', ok: true },
         { label: 'Вес', value: '61 кг', normal: 'Старт 59.5 кг', ok: true },
         { label: 'Риск преждевременных родов', value: '1:37', normal: 'Порог 1:100', ok: false, warning: true },
         { label: 'Риск с-ма Дауна', value: '1:11 750', normal: 'Базовый 1:278', ok: true },
@@ -334,16 +332,6 @@ const App = () => {
     return result;
   }, []);
 
-  const generateClaudePrompt = () => {
-    const issues = alerts.map((a) => {
-      const normalStr = Array.isArray(a.normal) ? `${a.normal[0]}–${a.normal[1]}` : a.normal;
-      return `${a.metric}: ${a.value} ${a.unit} (норма: ${normalStr})`;
-    }).join('\n');
-    const text = `Я на ${user.currentWeek} неделе беременности (ЭКО, 37 лет). Вот мои показатели вне нормы:\n\n${issues || 'Все показатели в норме.'}\n\nКроме того: высокий риск преждевременных родов (1:37 при пороге 1:100) по комбинированному скринингу.\n\nЧто это значит и на что обратить внимание?`;
-    if (navigator.clipboard) navigator.clipboard.writeText(text);
-    alert('Промт скопирован в буфер обмена. Открой Claude и вставь его в чат.');
-  };
-
   const filteredMetrics = useMemo(() => {
     if (['overview', 'ultrasound', 'genetics', 'monitoring'].includes(activeCategory)) return [];
     const metrics = getMetricsForCategory(activeCategory);
@@ -380,7 +368,7 @@ const App = () => {
                 <div className="text-xs uppercase tracking-[0.2em] text-stone-500 body-font">Дашборд беременности</div>
                 <div className="flex items-baseline gap-2">
                   <div className="display-font text-lg font-semibold text-stone-800">{user.name}</div>
-                  <div className="body-font text-xs text-stone-500">· {user.age} лет</div>
+                  <div className="body-font text-xs text-stone-500">· {user.age} лет · {user.bloodType}</div>
                 </div>
               </div>
             </div>
@@ -524,54 +512,6 @@ const App = () => {
               </div>
             )}
 
-            <div className="relative overflow-hidden rounded-3xl p-8"
-                 style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #831843 100%)', boxShadow: '0 30px 60px -20px rgba(76,29,149,0.4)' }}>
-              <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-30 blur-3xl"
-                   style={{ background: 'radial-gradient(circle, #f9a8d4 0%, transparent 70%)' }} />
-              <div className="relative flex flex-col md:flex-row items-start md:items-center gap-6 justify-between">
-                <div className="max-w-2xl">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="w-4 h-4 text-pink-200" />
-                    <span className="text-xs uppercase tracking-widest text-pink-200 body-font font-medium">Помощник</span>
-                  </div>
-                  <h3 className="display-font text-3xl font-semibold text-white leading-tight mb-2">Обсудить результаты с Claude</h3>
-                  <p className="body-font text-white/70 leading-relaxed">
-                    Соберём все отклонения и подготовим персональный вопрос — ты сможешь обсудить их с Claude или показать врачу.
-                  </p>
-                </div>
-                <button onClick={generateClaudePrompt}
-                        className="group flex items-center gap-2 px-6 py-3.5 rounded-full bg-white text-stone-900 hover:bg-stone-50 transition-all body-font font-semibold text-sm shadow-xl">
-                  <MessageCircle className="w-4 h-4" />
-                  Скопировать запрос
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="display-font text-2xl font-semibold text-stone-800 mb-4">Динамика по триместрам</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {trimesters.map((tri) => {
-                  const isCurrent = currentTrimester === tri.id;
-                  const isPast = currentTrimester > tri.id;
-                  return (
-                    <div key={tri.id}
-                         className={`relative overflow-hidden rounded-2xl p-6 border transition-all ${isCurrent ? 'border-stone-900 shadow-lg' : 'border-stone-200/70 bg-white/70'}`}
-                         style={{ background: isCurrent ? `linear-gradient(135deg, ${tri.color}15 0%, ${tri.color}05 100%)` : undefined }}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="display-font text-xl font-semibold text-stone-800">{tri.name}</div>
-                        {isCurrent && <span className="text-[10px] uppercase tracking-widest font-bold body-font px-2 py-1 rounded-full" style={{ backgroundColor: tri.color, color: 'white' }}>Сейчас</span>}
-                        {isPast && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
-                      </div>
-                      <div className="body-font text-sm text-stone-500">{tri.weeks}</div>
-                      <div className="mt-4 h-1.5 rounded-full overflow-hidden bg-stone-100">
-                        <div className="h-full rounded-full" style={{ width: isPast ? '100%' : isCurrent ? '50%' : '0%', backgroundColor: tri.color }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         )}
 
@@ -865,13 +805,8 @@ const App = () => {
           const totalGain = totalGainNum.toFixed(1);
           const expectedGain = monitoringData.targets.currentExpectedGain;
           const gainOk = totalGainNum >= expectedGain[0] && totalGainNum <= expectedGain[1];
-          const bpOk = latest.sys >= monitoringData.targets.sys[0] && latest.sys <= monitoringData.targets.sys[1] &&
-                       latest.dia >= monitoringData.targets.dia[0] && latest.dia <= monitoringData.targets.dia[1];
 
           const stats = [
-            { label: 'Артериальное давление', value: `${latest.sys}/${latest.dia}`, unit: 'мм рт.ст.',
-              ok: bpOk, target: `${monitoringData.targets.sys[0]}–${monitoringData.targets.sys[1]} / ${monitoringData.targets.dia[0]}–${monitoringData.targets.dia[1]}`,
-              icon: HeartPulse, color: '#fb7185' },
             { label: 'Вес', value: latest.weight, unit: 'кг',
               ok: gainOk, target: `прибавка ${expectedGain[0]}–${expectedGain[1]} кг к этой нед.`,
               extra: `+${totalGain} кг от старта`, icon: Weight, color: '#a78bfa' },
@@ -921,37 +856,6 @@ const App = () => {
                     </div>
                   );
                 })}
-              </div>
-
-              {/* График давления */}
-              <div className="rounded-3xl bg-white border border-stone-200/70 p-6"
-                   style={{ boxShadow: '0 10px 40px -15px rgba(0,0,0,0.08)' }}>
-                <div className="flex items-baseline justify-between mb-4">
-                  <div>
-                    <div className="display-font text-xl font-semibold text-stone-800">Артериальное давление</div>
-                    <div className="body-font text-xs text-stone-500 mt-0.5">Систолическое / диастолическое по неделям</div>
-                  </div>
-                  <div className="flex items-center gap-3 body-font text-xs">
-                    <div className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-rose-400 rounded" />Сист.</div>
-                    <div className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-violet-400 rounded" />Диаст.</div>
-                  </div>
-                </div>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f4" />
-                      <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#78716c', fontFamily: 'Inter' }}
-                             label={{ value: 'неделя', position: 'insideBottomRight', offset: -5, fontSize: 10, fill: '#a8a29e' }} />
-                      <YAxis tick={{ fontSize: 11, fill: '#78716c', fontFamily: 'Inter' }} domain={[55, 130]} />
-                      <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e7e5e4', fontSize: 12, fontFamily: 'Inter' }}
-                               labelFormatter={(w) => `Неделя ${w}`} />
-                      <Line type="monotone" dataKey="sys" stroke="#fb7185" strokeWidth={2.5}
-                            dot={{ r: 4, fill: '#fb7185', strokeWidth: 2, stroke: 'white' }} name="Систолическое" />
-                      <Line type="monotone" dataKey="dia" stroke="#a78bfa" strokeWidth={2.5}
-                            dot={{ r: 4, fill: '#a78bfa', strokeWidth: 2, stroke: 'white' }} name="Диастолическое" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
               </div>
 
               {/* Антропометрия и цели прибавки */}
@@ -1038,7 +942,6 @@ const App = () => {
                     <thead>
                       <tr className="border-y border-stone-100 bg-stone-50/50">
                         <th className="text-left px-6 py-3 body-font text-[10px] uppercase tracking-wider font-bold text-stone-500">Неделя</th>
-                        <th className="text-left px-3 py-3 body-font text-[10px] uppercase tracking-wider font-bold text-stone-500">АД</th>
                         <th className="text-left px-3 py-3 body-font text-[10px] uppercase tracking-wider font-bold text-stone-500">Вес</th>
                         <th className="text-left px-3 py-3 body-font text-[10px] uppercase tracking-wider font-bold text-stone-500">Пульс</th>
                         <th className="text-left px-3 py-3 body-font text-[10px] uppercase tracking-wider font-bold text-stone-500">Отёки</th>
@@ -1049,7 +952,6 @@ const App = () => {
                       {[...data].reverse().map((row, i) => (
                         <tr key={i} className="border-b border-stone-100 last:border-0 hover:bg-stone-50/40 transition-colors">
                           <td className="px-6 py-3 display-font font-semibold text-stone-800">{row.week}</td>
-                          <td className="px-3 py-3 body-font text-sm text-stone-700">{row.sys}/{row.dia}</td>
                           <td className="px-3 py-3 body-font text-sm text-stone-700">{row.weight} кг</td>
                           <td className="px-3 py-3 body-font text-sm text-stone-700">{row.pulse}</td>
                           <td className="px-3 py-3 body-font text-sm">
