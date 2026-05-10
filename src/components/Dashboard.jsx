@@ -5,7 +5,10 @@ import {
   TrendingUp, TrendingDown, Sparkles, FlaskConical, Trash2, Copy
 } from "lucide-react";
 import { getMyAnalyses, deleteAnalysis } from "../lib/analysesApi";
-import { getMyProfile, calculatePregnancyWeek } from "../lib/profileApi";
+import {
+  getMyProfile, calculatePregnancyWeek, calculateAge,
+  formatBloodInfo, pluralYears
+} from "../lib/profileApi";
 import { categorizeAnalysis, getCategoryLabel } from "../lib/analysisTypes";
 
 const TYPE_FILTERS = [
@@ -194,6 +197,8 @@ export default function Dashboard({ onAddNew, onOpenList, onOpenProfile }) {
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 py-4 px-3 pb-24">
       <div className="max-w-md mx-auto space-y-3">
 
+        <ProfileHeader profile={profile} onOpenProfile={onOpenProfile} />
+
         <PregnancyCard week={currentWeek} onOpenProfile={onOpenProfile} />
 
         <div className="grid grid-cols-2 gap-2">
@@ -311,6 +316,39 @@ export default function Dashboard({ onAddNew, onOpenList, onOpenProfile }) {
         <BottomNav onAddNew={onAddNew} onOpenList={onOpenList} onOpenProfile={onOpenProfile} active="dashboard" />
       </div>
     </div>
+  );
+}
+
+function ProfileHeader({ profile, onOpenProfile }) {
+  if (!profile || !profile.first_name) return null;
+
+  const age = calculateAge(profile.birth_date);
+  const bloodInfo = formatBloodInfo(profile.blood_group, profile.rh_factor);
+
+  const subParts = [];
+  if (age !== null) subParts.push(age + " " + pluralYears(age));
+  if (bloodInfo) subParts.push(bloodInfo);
+
+  return (
+    <button
+      onClick={onOpenProfile}
+      className="w-full bg-white/60 backdrop-blur rounded-2xl border border-white/40 px-4 py-3 flex items-center gap-3 hover:bg-white/80 transition text-left"
+    >
+      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-200 to-purple-200 flex items-center justify-center shrink-0">
+        <Heart size={16} className="text-pink-700" fill="currentColor" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Дашборд беременности</p>
+        <p className="text-[15px] font-medium text-gray-900 leading-tight">
+          {profile.first_name}
+          {subParts.length > 0 && (
+            <span className="text-[12px] font-normal text-gray-500 ml-1.5">
+              · {subParts.join(" · ")}
+            </span>
+          )}
+        </p>
+      </div>
+    </button>
   );
 }
 
