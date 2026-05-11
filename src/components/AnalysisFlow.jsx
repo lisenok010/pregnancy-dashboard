@@ -16,13 +16,12 @@ function isProfileComplete(profile) {
 }
 
 export default function AnalysisFlow() {
-  const [step, setStep] = useState("loading"); // loading | onboarding | dashboard | list | upload | review | profile
+  const [step, setStep] = useState("loading");
   const [recognizedData, setRecognizedData] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // При первом рендере проверяем заполнен ли профиль
   useEffect(() => {
     getMyProfile()
       .then((profile) => {
@@ -34,7 +33,6 @@ export default function AnalysisFlow() {
       })
       .catch((err) => {
         console.error(err);
-        // Если не смогли загрузить — отправляем на онбординг (возможно профиля нет)
         setStep("onboarding");
       });
   }, []);
@@ -45,7 +43,8 @@ export default function AnalysisFlow() {
     setStep("review");
   };
 
-  const handleSave = async (markers) => {
+  // Принимаем второй аргумент — выбранный пользователем тип из дропдауна
+  const handleSave = async (markers, chosenType) => {
     if (!recognizedData) return;
     setSaving(true);
     setSaveError(null);
@@ -61,11 +60,11 @@ export default function AnalysisFlow() {
           if (calc) week = calc.weeks;
         }
       } catch (e) {
-        // оставим week = 28 если профиль не достали
+        // фоллбэк 28 нед если что-то пошло не так
       }
 
       await saveAnalysis({
-        analysisType: recognizedData.analysisType,
+        analysisType: chosenType || recognizedData.analysisType,
         analysisDate: recognizedData.analysisDate,
         pregnancyWeek: week,
         fileName: recognizedData.fileName,
@@ -88,7 +87,6 @@ export default function AnalysisFlow() {
     setStep("dashboard");
   };
 
-  // Загрузка профиля при первом входе
   if (step === "loading") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center">
@@ -97,7 +95,6 @@ export default function AnalysisFlow() {
     );
   }
 
-  // Онбординг — обязательное заполнение профиля
   if (step === "onboarding") {
     return (
       <ProfileScreen
