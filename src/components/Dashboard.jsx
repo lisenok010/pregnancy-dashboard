@@ -127,11 +127,13 @@ export default function Dashboard({ onAddNew, onOpenList, onOpenProfile }) {
     [dedupedAnalyses, activeFilter]
   );
 
+  // markersHistory теперь хранит и dateStr/week для каждой точки
   const markersHistory = useMemo(() => {
     const map = new Map();
     for (const analysis of filteredAnalyses) {
+      const aDate = analysis.analysis_date || analysis.created_at;
       const week = profile && profile.due_date
-        ? calculatePregnancyWeek(profile.due_date, analysis.analysis_date || analysis.created_at)
+        ? calculatePregnancyWeek(profile.due_date, aDate)
         : null;
       for (const m of analysis.markers || []) {
         if (!m.id || !m.value) continue;
@@ -145,7 +147,7 @@ export default function Dashboard({ onAddNew, onOpenList, onOpenProfile }) {
           });
         }
         map.get(m.id).points.push({
-          date: analysis.analysis_date || analysis.created_at,
+          date: aDate,
           week: week ? week.weeks : null,
           value: numericValue,
           analysisId: analysis.id
@@ -168,7 +170,12 @@ export default function Dashboard({ onAddNew, onOpenList, onOpenProfile }) {
       const isLow = typeof m.normMin === "number" && last.value < m.normMin;
       const isHigh = typeof m.normMax === "number" && last.value > m.normMax;
       if (isLow || isHigh) {
-        result.push(Object.assign({}, m, { lastValue: last.value, status: isHigh ? "high" : "low" }));
+        result.push(Object.assign({}, m, {
+          lastValue: last.value,
+          lastDate: last.date,
+          lastWeek: last.week,
+          status: isHigh ? "high" : "low"
+        }));
       }
     }
     return result;
@@ -557,6 +564,7 @@ function AbnormalCard({ marker }) {
   const Icon = isHigh ? TrendingUp : TrendingDown;
   const color = isHigh ? "text-rose-600 bg-rose-50" : "text-blue-600 bg-blue-50";
   const labelText = isHigh ? "Повышен" : "Понижен";
+  const dateStr = formatRusDate(marker.lastDate);
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-3 shadow-sm flex items-center gap-3">
       <div className={"w-10 h-10 rounded-xl flex items-center justify-center shrink-0 " + color}>
@@ -569,6 +577,12 @@ function AbnormalCard({ marker }) {
           <span className="font-medium text-gray-700">{marker.lastValue} {marker.unit}</span>
           {" · "}{marker.normLabel ? marker.normLabel.replace("Норма: ", "норма ") : ""}
         </p>
+        {(dateStr || marker.lastWeek !== null) && (
+          <p className="text-[10px] text-gray-400 mt-0.5">
+            {dateStr}
+            {marker.lastWeek !== null ? (dateStr ? " · " : "") + marker.lastWeek + " нед" : ""}
+          </p>
+        )}
       </div>
     </div>
   );
