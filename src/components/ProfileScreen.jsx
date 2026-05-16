@@ -4,6 +4,7 @@ import {
   getMyProfile, upsertProfile, calculatePregnancyWeek,
   calculateAge, BLOOD_GROUPS, RH_FACTORS, pluralYears
 } from "../lib/profileApi";
+import SharePanel from "./SharePanel";
 
 export default function ProfileScreen({ onBack, isOnboarding = false }) {
   const [firstName, setFirstName] = useState("");
@@ -76,7 +77,7 @@ export default function ProfileScreen({ onBack, isOnboarding = false }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 py-4 px-3">
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto space-y-3">
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
           <div className="px-4 py-3.5 border-b border-gray-100 flex items-center gap-2.5">
             {!isOnboarding && (
@@ -115,7 +116,6 @@ export default function ProfileScreen({ onBack, isOnboarding = false }) {
                 </div>
               )}
 
-              {/* Имя — обязательно */}
               <div>
                 <label className="block text-[12px] font-medium text-gray-700 mb-1">
                   Имя <span className="text-rose-500">*</span>
@@ -130,7 +130,6 @@ export default function ProfileScreen({ onBack, isOnboarding = false }) {
                 />
               </div>
 
-              {/* ПДР — обязательно */}
               <div>
                 <label className="block text-[12px] font-medium text-gray-700 mb-1">
                   Предполагаемая дата родов <span className="text-rose-500">*</span>
@@ -152,7 +151,6 @@ export default function ProfileScreen({ onBack, isOnboarding = false }) {
                   Опционально
                 </p>
 
-                {/* Дата рождения */}
                 <div className="mb-3">
                   <label className="block text-[12px] font-medium text-gray-700 mb-1">
                     Дата рождения
@@ -170,7 +168,6 @@ export default function ProfileScreen({ onBack, isOnboarding = false }) {
                   )}
                 </div>
 
-                {/* Группа крови + резус — рядом */}
                 <div className="grid grid-cols-2 gap-2 mb-1">
                   <div>
                     <label className="block text-[12px] font-medium text-gray-700 mb-1">
@@ -229,6 +226,10 @@ export default function ProfileScreen({ onBack, isOnboarding = false }) {
             </form>
           )}
         </div>
+
+        {!isOnboarding && !loading && (
+          <SharePanel />
+        )}
       </div>
     </div>
   );

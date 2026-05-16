@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
 import { Loader2, LogOut } from "lucide-react";
 import AnalysisFlow from "./components/AnalysisFlow";
 import AuthScreen from "./components/AuthScreen";
+import SharedView from "./components/SharedView";
 
 function AppContent() {
   const { user, loading, signOut } = useAuth();
@@ -36,6 +38,23 @@ function AppContent() {
 }
 
 function App() {
+  // Hash routing: если URL вида #/share/abc123 → публичный режим без авторизации
+  const [route, setRoute] = useState(() => {
+    return window.location.hash.startsWith("#/share/") ? "share" : "app";
+  });
+
+  useEffect(() => {
+    const onHashChange = () => {
+      setRoute(window.location.hash.startsWith("#/share/") ? "share" : "app");
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  if (route === "share") {
+    return <SharedView />;
+  }
+
   return (
     <AuthProvider>
       <AppContent />
