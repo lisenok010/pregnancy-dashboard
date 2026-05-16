@@ -10,6 +10,7 @@ import {
   formatBloodInfo, pluralYears
 } from "../lib/profileApi";
 import { categorizeAnalysis, getCategoryLabel } from "../lib/analysisTypes";
+import SupplementsCard from "./SupplementsCard";
 
 const TYPE_FILTERS = [
   { id: "all", label: "Все" },
@@ -207,6 +208,7 @@ export default function Dashboard({ onAddNew, onOpenList, onOpenProfile }) {
         <ProfileHeader profile={profile} onOpenProfile={onOpenProfile} />
 
         <PregnancyCard week={currentWeek} onOpenProfile={onOpenProfile} />
+<SupplementsCard />
 
         <div className="grid grid-cols-2 gap-2">
           <HealthIndexCard value={healthIndex} abnormalCount={abnormalMarkers.length} />

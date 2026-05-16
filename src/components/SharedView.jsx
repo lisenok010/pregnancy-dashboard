@@ -5,6 +5,7 @@ import {
   Sparkles, FlaskConical, FileText, Eye, ShieldCheck, AlertTriangle
 } from "lucide-react";
 import { getSharedData, getTokenFromHash } from "../lib/sharedDataApi";
+import SharedSupplementsCard from "./SharedSupplementsCard";
 import { calculatePregnancyWeek, calculateAge, formatBloodInfo, pluralYears } from "../lib/profileApi";
 import { categorizeAnalysis, getCategoryLabel } from "../lib/analysisTypes";
 
@@ -128,6 +129,7 @@ export default function SharedView() {
     <SharedDashboard
       profile={profile}
       analyses={dedupedAnalyses}
+supplements={data.supplements || []}
       activeFilter={activeFilter}
       setActiveFilter={setActiveFilter}
     />
@@ -174,7 +176,7 @@ function ErrorScreen({ code, message }) {
   );
 }
 
-function SharedDashboard({ profile, analyses, activeFilter, setActiveFilter }) {
+function SharedDashboard({ profile, analyses, supplements, activeFilter, setActiveFilter }) {
   const categoryCounts = useMemo(() => {
     const counts = {};
     for (const a of analyses) {
@@ -264,6 +266,7 @@ function SharedDashboard({ profile, analyses, activeFilter, setActiveFilter }) {
         )}
 
         <PregnancyCard week={currentWeek} />
+<SharedSupplementsCard items={supplements} />
 
         <div className="grid grid-cols-2 gap-2">
           <HealthIndexCard value={healthIndex} abnormalCount={abnormalMarkers.length} />
