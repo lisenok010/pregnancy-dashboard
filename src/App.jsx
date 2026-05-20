@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
-import { Loader2, LogOut } from "lucide-react";
+import { Loader2, LogOut, ArrowLeft } from "lucide-react";
 import AnalysisFlow from "./components/AnalysisFlow";
 import AuthScreen from "./components/AuthScreen";
 import SharedView from "./components/SharedView";
+import Landing from "./components/Landing";
+
+function resolveRoute() {
+  const h = window.location.hash || "";
+  if (h.startsWith("#/share/")) return "share";
+  if (h.startsWith("#/app")) return "app";
+  return "landing";
+}
 
 function AppContent() {
   const { user, loading, signOut } = useAuth();
@@ -23,7 +31,17 @@ function AppContent() {
   return (
     <div>
       <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
-        <p className="text-[12px] text-gray-600 truncate">{user.email}</p>
+        <div className="flex items-center gap-3 min-w-0">
+          <a
+            href="#/"
+            className="text-[12px] text-gray-500 hover:text-gray-900 flex items-center gap-1 shrink-0"
+            title="На главную"
+          >
+            <ArrowLeft size={12} />
+            На лендинг
+          </a>
+          <p className="text-[12px] text-gray-600 truncate">{user.email}</p>
+        </div>
         <button
           onClick={signOut}
           className="text-[12px] text-gray-500 hover:text-gray-900 flex items-center gap-1 px-2 py-1"
@@ -38,15 +56,10 @@ function AppContent() {
 }
 
 function App() {
-  // Hash routing: если URL вида #/share/abc123 → публичный режим без авторизации
-  const [route, setRoute] = useState(() => {
-    return window.location.hash.startsWith("#/share/") ? "share" : "app";
-  });
+  const [route, setRoute] = useState(() => resolveRoute());
 
   useEffect(() => {
-    const onHashChange = () => {
-      setRoute(window.location.hash.startsWith("#/share/") ? "share" : "app");
-    };
+    const onHashChange = () => setRoute(resolveRoute());
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
@@ -55,11 +68,16 @@ function App() {
     return <SharedView />;
   }
 
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
+  if (route === "app") {
+    return (
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    );
+  }
+
+  // По умолчанию — лендинг
+  return <Landing />;
 }
 
 export default App;
